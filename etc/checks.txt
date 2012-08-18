@@ -1,0 +1,1 @@
+nrpe "check_bacula_main", "6h", "bacula::node country=us"
