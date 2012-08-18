@@ -17,6 +17,8 @@ All communications between the scheduler, nodes and receivers are secured
 using your MCollective security infrastructure and authorization to run checks
 are done using the MCollective Authorization system.
 
+![Basic Overview](https://raw.github.com/ripienaar/mnrpes/master/docs/mnrpes-overview.jpg)
+
 *This is still not complete, check back for more information later*
 
 Configuration?
