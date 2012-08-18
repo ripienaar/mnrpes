@@ -59,6 +59,13 @@ Apart from the basic MCollective setup you can also set the following:
 This affects where your Nagios *command_file* file is and what Stomp
 destination is being used to transport check results.
 
+For best results you would want to run MCollective  2.1.1 at least and one
+of the new Discovery Plugins that does discovery against a local cache like
+MongoDB or PuppetDB. 
+
+This way you will not be doing costly discoveries against the network all the
+time and get consistant host lists.
+
 Adding Checks?
 --------------
 Checks live in a simple file, an example can be seen below:
