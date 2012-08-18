@@ -21,6 +21,25 @@ are done using the MCollective Authorization system.
 
 *This is still not complete, check back for more information later*
 
+Shortcomings?
+-------------
+
+This isn't some magical make-nagios-suck-less thing, you still need to
+configure every service to receive the Passive Checks in Nagios else it will
+just discard the Passive Results for non existing hosts or services.
+
+Your MCollective identifies need to match up with what you have called your
+hosts in Nagios as it will simply use the identities for host names in the
+Passive Results.
+
+If your NRPE check command is called *check_load* then this system will submit
+a passive check to the *load* service.
+
+The scheduler isn't aware of your Nagios config so if you add a check
+somewhere you should also add it to the checks file.  The core idea is that we
+find that many hosts have common checks across batches of them, this system
+will optimise and scale the gathering of those results.
+
 Configuration?
 --------------
 
