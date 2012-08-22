@@ -17,7 +17,7 @@ class MNRPES
     end
 
     def nrpe(command, interval, filter=nil)
-      options = {:first_in => "%ss" % rand(60),
+      options = {:first_in => "%ss" % rand(Rufus.parse_time_string(interval)),
                  :blocking => true}
 
       Log.info("Adding a job for %s every %s matching '%s', first in %s" % [command, interval, filter, options[:first_in]])
