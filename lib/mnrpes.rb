@@ -38,7 +38,7 @@ class MNRPES
 
     MCollective::UnixDaemon.daemonize do
       if pidfile
-        File.open(pid, 'w') {|f| f.write(Process.pid) } rescue nil
+        File.open(pidfile, 'w') {|f| f.write(Process.pid) } rescue nil
       end
 
       begin
