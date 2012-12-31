@@ -12,7 +12,7 @@ Source0: %{name}-%{version}-%{rpm_release}.tgz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: ruby(abi) >= 1.8
 Requires: nagios
-Requires: rubygem-rufus
+Requires: rubygem-rufus-scheduler
 Requires: mcollective-common >= 2.2.0
 BuildArch: noarch
 Packager: R.I.Pienaar <rip@devco.net>
@@ -39,6 +39,7 @@ rm -rf %{buildroot}
 %{__install} -m0755 bin/mnrpes-receiver.rb %{buildroot}/usr/bin/mnrpes-receiver
 %{__install} -m0755 bin/mnrpes-scheduler.rb %{buildroot}/usr/bin/mnrpes-scheduler
 %{__install} -d -m0755  %{buildroot}/var/log/mnrpes
+%{__install} -d -m0755  %{buildroot}/var/run/mnrpes
 %{__install} -m0755 mnrpes-receiver.init %{buildroot}%{_sysconfdir}/init.d/mnrpes-receiver
 %{__install} -m0755 mnrpes-scheduler.init %{buildroot}%{_sysconfdir}/init.d/mnrpes-scheduler
 cp -R lib/mnrpes.rb %{buildroot}/%{ruby_sitelib}/
@@ -76,6 +77,7 @@ fi
 %{_sysconfdir}/init.d/mnrpes-scheduler
 %defattr(0755,nagios,nagios,0755)
 /var/log/mnrpes
+/var/run/mnrpes
 
 %changelog
 * Mon Dec 31 2012 R.I.Pienaar <rip@devco.net> - 0.1

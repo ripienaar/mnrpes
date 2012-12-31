@@ -5,7 +5,7 @@ require 'optparse'
 
 pidfile = nil
 configfile = nil
-checks = nil
+checks = "/etc/mnrpes/checks.txt"
 
 opt = OptionParser.new
 

@@ -16,7 +16,7 @@
 
 command="mnrpes-receiver"
 binfile="/usr/bin/${command}"
-pidfile="/var/run/${command}.pid"
+pidfile="/var/run/mnrpes/${command}.pid"
 configfile="/etc/mnrpes/${command}.cfg"
 user="nagios"
 

@@ -6,7 +6,7 @@ PROJ_NAME = "mnrpes"
 PROJ_FILES = ["bin", "lib", "#{PROJ_NAME}.spec", "etc", "mnrpes-receiver.init", "mnrpes-scheduler.init"]
 PROJ_DOC_TITLE = "MNRPES - MCollective based system to scale NRPE checks"
 PROJ_VERSION = "0.1"
-PROJ_RELEASE = "1"
+PROJ_RELEASE = "2"
 PROJ_RPM_NAMES = [PROJ_NAME]
 
 ENV["RPM_VERSION"] ? CURRENT_VERSION = ENV["RPM_VERSION"] : CURRENT_VERSION = PROJ_VERSION
