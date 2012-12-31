@@ -1,0 +1,136 @@
+#!/bin/sh
+#
+# mnrpes-scheduler   MCollective based scheduler to scale NRPE checks
+#
+# chkconfig:    - 24 76
+#
+# description:Use the MCollective framework to scale NRPE checks in an async manner
+#
+### BEGIN INIT INFO
+# Provides:          mnrpes
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+### END INIT INFO
+
+command="mnrpes-scheduler"
+binfile="/usr/bin/${command}"
+pidfile="/var/run/${command}.pid"
+configfile="/etc/mnrpes/${command}.cfg"
+user="nagios"
+
+if [ -d /var/lock/subsys ]; then
+    # RedHat/CentOS/etc who use subsys
+    lockfile="/var/lock/subsys/${command}"
+else
+    # The rest of them
+    lockfile="/var/lock/${command}"
+fi
+
+# Check that binary exists
+if ! [ -f $binfile ]; then
+    echo "${binfile} binary not found"
+    exit 5
+fi
+
+# Source function library.
+. /etc/init.d/functions
+
+if [ -f /etc/sysconfig/${command} ]; then
+    . /etc/sysconfig/${command}
+fi
+
+# Determine if we can use the -p option to daemon, killproc, and status.
+# RHEL < 5 can't.
+if status | grep -q -- '-p' 2>/dev/null; then
+    daemonopts="--pidfile $pidfile"
+    pidopts="-p $pidfile"
+fi
+
+start() {
+    echo -n "Starting ${command}: "
+    # Only try to start if not already started
+    if ! rh_status_q; then
+      daemon --user "${user}" ${daemonopts} ${binfile} --pid=${pidfile} --config=${configfile}
+    fi
+
+    # This will be 0 if mcollective is already running
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch ${lockfile}
+    return $RETVAL
+}
+
+stop() {
+    echo -n "Shutting down ${command}: "
+    # If running, try to stop it
+    if rh_status_q; then
+      killproc ${pidopts} -d 10 ${binfile}
+    else
+      # Non-zero status either means lockfile and pidfile need cleanup (1 and 2)
+      # or the process is already stopped (3), so we can just call true to
+      # trigger the cleanup that happens below.
+      true
+    fi
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+    return $RETVAL
+}
+
+restart() {
+    stop
+    start
+}
+
+reload_agents() {
+    echo -n "Reloading ${command} agents: "
+    killproc ${pidopts} ${binfile} -USR1
+    RETVAL=$?
+    echo
+    return $RETVAL
+}
+
+reload_loglevel() {
+    echo -n "Cycling ${command} logging level: "
+    killproc ${pidopts} ${binfile} -USR2
+    RETVAL=$?
+    echo
+    return $RETVAL
+}
+
+rh_status() {
+    status ${pidopts} ${binfile}
+    RETVAL=$?
+    return $RETVAL
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    condrestart)
+        rh_status_q || exit 0
+        restart
+        ;;
+    status)
+        rh_status
+        ;;
+    *)
+        echo "Usage: ${command} {start|stop|restart|condrestart|status}"
+        RETVAL=2
+        ;;
+esac
+exit $RETVAL

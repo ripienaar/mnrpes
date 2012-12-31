@@ -1,0 +1,17 @@
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/libexec/mcollective
+logfile = /var/log/mnrpes/mnrpes-scheduler.log
+loglevel = info
+daemonize = 1
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+
+connector = stomp
+plugin.stomp.host = localhost
+plugin.stomp.port = 61613
+plugin.stomp.user = mcollective
+plugin.stomp.password = secret
