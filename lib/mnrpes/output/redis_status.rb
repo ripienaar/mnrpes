@@ -1,5 +1,30 @@
 class MNRPES
   class Output
+    # An output that maintains a status view of received results
+    # in the Redis key-value store
+    #
+    # You need the redis and redis-objects gem installed to use this.
+    #
+    # The results will be maintained in Redis::HashKey instances with
+    # names matching "check $hostname $checkname" like "check devco.net load"
+    # and the data there in will be:
+    #
+    #     {"exitcode"=>"0",
+    #      "count"=>"1",
+    #      "lastcheck"=>"1357165874",
+    #      "check"=>"totalprocs",
+    #      "host"=>"devco.net",
+    #      "output"=>"PROCS OK: 179 processes",
+    #      "prefdata"=>""}
+    #
+    # This shows the current status of the host and for how many checks in
+    # a row it held that status, if as here the status transition from 0 to
+    # 1 the count will reset to 1 and it will then forever increment till the
+    # next status change.
+    #
+    # In future we'll publish a notification of a change via Redis pub-sub so
+    # downstream systems like alerters can get notified of a state change and
+    # act accordingly
     class Redis_status
       def initialize
         require 'rubygems'

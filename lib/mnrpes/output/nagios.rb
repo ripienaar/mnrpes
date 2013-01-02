@@ -1,5 +1,9 @@
 class MNRPES
   class Output
+    # An output that writes Passive Results into the Nagios command file
+    #
+    # Configure mnrpes.nagios.command_file to be the path to the command
+    # file the results will just be written there in order they arrive
     class Nagios
       def initialize
         config = MCollective::Config.instance
