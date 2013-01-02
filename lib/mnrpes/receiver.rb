@@ -1,10 +1,16 @@
 class MNRPES
   class Receiver
-    def initialize(command, destination)
-      @command_file = command
+    def initialize(processor, destination)
+      @processor = load_processor(processor)
 
       connect
       subscribe(destination)
+    end
+
+    def load_processor(processor)
+      require 'mnrpes/output/%s' % processor
+
+      MNRPES::Output.const_get(processor.capitalize).new
     end
 
     def connect
@@ -21,21 +27,10 @@ class MNRPES
       loop do
         begin
           receive do |result|
-            data = result[:body][:data]
-
-            unless data[:perfdata] == ""
-              output = "%s|%s" % [data[:output], data[:perfdata]]
-            else
-              output = data[:output]
-            end
-
-            passive_check = "[%d] PROCESS_SERVICE_CHECK_RESULT;%s;%s;%d;%s" % [result[:msgtime], result[:senderid], data[:command].gsub("check_", ""), data[:exitcode], output]
-
-            Log.info("Submitting passive data to nagios: #{passive_check}")
-            File.open(@command_file, "w") {|nagios| nagios.puts passive_check }
+            @processor.process(result[:body][:data])
           end
         rescue => e
-          STDERR.puts "Could not write to #{@command_file}: %s: %s" % [e.class, e.to_s]
+          Log.error "Could process received data: %s: %s" % [e.class, e.to_s]
         end
       end
     end

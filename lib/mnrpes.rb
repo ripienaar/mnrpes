@@ -15,10 +15,10 @@ class MNRPES
     if @receiver
       @receiver
     else
-      cmd_file = @config.pluginconf["mnrpes.nagios.command_file"] || "/var/log/nagios/rw/nagios.cmd"
-      destination = @config.pluginconf["mnrpes.reply_queue"] || "/queue/mcollective.nagios_passive_results"
+      processor = @config.pluginconf.fetch("mnrpes.processor", "nagios")
+      destination = @config.pluginconf.fetch("mnrpes.reply_queue", "/queue/mcollective.nagios_passive_results")
 
-      @receiver = Receiver.new(cmd_file, destination)
+      @receiver = Receiver.new(processor.downcase, destination)
     end
   end
 
@@ -26,7 +26,7 @@ class MNRPES
     if @scheduler
       @scheduler
     else
-      destination = @config.pluginconf["mnrpes.reply_queue"] || "/queue/mcollective.nagios_passive_results"
+      destination = @config.pluginconf.fetch("mnrpes.reply_queue", "/queue/mcollective.nagios_passive_results")
       @scheduler = Scheduler.new(destination, checks)
     end
   end

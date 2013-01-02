@@ -59,9 +59,15 @@ Apart from the basic MCollective setup you can also set the following:
 This affects where your Nagios *command_file* file is and what Stomp
 destination is being used to transport check results.
 
+The output handling is handled using plugins.  By default it uses the *nagios*
+output as described here but there are some others, see the *output* directory,
+you can choose a different output handler:
+
+    plugin.mnrpes.processor = stdout
+
 For best results you would want to run MCollective  2.1.1 at least and one
 of the new Discovery Plugins that does discovery against a local cache like
-MongoDB or PuppetDB. 
+MongoDB or PuppetDB.
 
 This way you will not be doing costly discoveries against the network all the
 time and get consistant host lists.
