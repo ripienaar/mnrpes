@@ -2,13 +2,15 @@ class MNRPES
   class Output
     class Nagios
       def initialize
-        @config = MCollective::Config.instance
+        config = MCollective::Config.instance
 
         @command_file = config.pluginconf.fetch("mnrpes.nagios.command_file", "/var/log/nagios/rw/nagios.cmd")
       end
 
-      def process(data)
-        raise "No data received" unless data
+      def process(result)
+        raise "No data received" unless result
+
+        data = result[:body][:data]
 
         unless data[:perfdata] == ""
           output = "%s|%s" % [data[:output], data[:perfdata]]

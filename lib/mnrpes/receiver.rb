@@ -27,7 +27,7 @@ class MNRPES
       loop do
         begin
           receive do |result|
-            @processor.process(result[:body][:data])
+            @processor.process(result)
           end
         rescue => e
           Log.error "Could process received data: %s: %s" % [e.class, e.to_s]

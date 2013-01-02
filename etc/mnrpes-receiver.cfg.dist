@@ -15,3 +15,5 @@ plugin.stomp.host = localhost
 plugin.stomp.port = 61613
 plugin.stomp.user = mcollective
 plugin.stomp.password = secret
+
+plugin.mnrpes.processor = nagios
