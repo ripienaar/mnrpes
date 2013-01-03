@@ -15,7 +15,7 @@ class MNRPES
     if @receiver
       @receiver
     else
-      processor = @config.pluginconf.fetch("mnrpes.processor", "nagios")
+      processor = @config.pluginconf.fetch("mnrpes.processors", "nagios")
       destination = @config.pluginconf.fetch("mnrpes.reply_queue", "/queue/mcollective.nagios_passive_results")
 
       @receiver = Receiver.new(processor.downcase, destination)

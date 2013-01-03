@@ -63,7 +63,13 @@ The output handling is handled using plugins.  By default it uses the *nagios*
 output as described here but there are some others, see the *output* directory,
 you can choose a different output handler:
 
-    plugin.mnrpes.processor = stdout
+    plugin.mnrpes.processors = stdout
+
+The processors can be a list like:
+
+    plugin.mnrpes.processors = stdout,nagios
+
+Which means both plugins will get the data.
 
 For best results you would want to run MCollective  2.1.1 at least and one
 of the new Discovery Plugins that does discovery against a local cache like

@@ -1,16 +1,18 @@
 class MNRPES
   class Receiver
-    def initialize(processor, destination)
-      @processor = load_processor(processor)
+    def initialize(processors, destination)
+      @processors = load_processors(processors)
 
       connect
       subscribe(destination)
     end
 
-    def load_processor(processor)
-      require 'mnrpes/output/%s' % processor
+    def load_processors(processors)
+      processors.split(/\s*,\s*/).map do |processor|
+        require 'mnrpes/output/%s' % processor
 
-      MNRPES::Output.const_get(processor.capitalize).new
+        MNRPES::Output.const_get(processor.capitalize).new
+      end
     end
 
     def connect
@@ -27,7 +29,9 @@ class MNRPES
       loop do
         begin
           receive do |result|
-            @processor.process(result)
+            @processors.each do |processor|
+              processor.process(result)
+            end
           end
         rescue => e
           Log.error "Could process received data: %s: %s" % [e.class, e.to_s]
