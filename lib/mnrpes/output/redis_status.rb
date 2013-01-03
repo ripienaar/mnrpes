@@ -13,6 +13,7 @@ class MNRPES
     #      "check"=>"totalprocs",
     #      "host"=>"devco.net",
     #      "output"=>"PROCS OK: 179 processes",
+    #      "last_state_change" => "1357165874",
     #      "prefdata"=>""}
     #
     # This shows the current status of the host and for how many checks in
@@ -103,7 +104,8 @@ class MNRPES
         key = "status %s %s" % [result[:senderid], check]
         r = Redis.current
 
-        old_exitcode = Integer(r.hget(key, "exitcode"))
+        old_exitcode = r.hget(key, "exitcode")
+        old_exitcode = Integer(old_exitcode) if old_exitcode
 
         results = r.multi do
           r.hset(key, "host", result[:senderid])
@@ -120,9 +122,10 @@ class MNRPES
           end
         end
 
-        r.zadd "host_last_seen", last_check, result[:senderid]
+        r.zadd("host_last_seen", last_check, result[:senderid])
 
         unless old_exitcode == data[:exitcode]
+          r.hset(key, "last_state_change", last_check)
           notify_state_change(result[:senderid], check, last_check, old_exitcode, data[:exitcode])
         end
 
