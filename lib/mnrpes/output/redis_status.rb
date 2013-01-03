@@ -20,6 +20,11 @@ class MNRPES
     # 1 the count will reset to 1 and it will then forever increment till the
     # next status change.
     #
+    # It will maintain a sorted set indicating when last we've seen a check
+    # result from a specific host in the host_last_seen key, the member names
+    # will be the host names while the score will be the UTC time stamp it
+    # was last seen
+    #
     # You can configure this output to publish a message to redis pubsub for
     # any check that has a status of > 0 and for any status change from one
     # state to another.
@@ -115,11 +120,11 @@ class MNRPES
           end
         end
 
+        r.zadd "host_last_seen", last_check, result[:senderid]
+
         unless old_exitcode == data[:exitcode]
           notify_state_change(result[:senderid], check, last_check, old_exitcode, data[:exitcode])
         end
-
-        p results if result[:senderid] == "dev1.devco.net"
 
         results[6] == false ? count = 1 : count = results[6]
 
