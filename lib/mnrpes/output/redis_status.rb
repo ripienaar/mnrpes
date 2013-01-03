@@ -3,11 +3,9 @@ class MNRPES
     # An output that maintains a status view of received results
     # in the Redis key-value store
     #
-    # You need the redis and redis-objects gem installed to use this.
-    #
-    # The results will be maintained in Redis::HashKey instances with
-    # names matching "check $hostname $checkname" like "check devco.net load"
-    # and the data there in will be:
+    # The results will be maintained in Redis Hashwith names matching
+    # "check $hostname $checkname" like "check devco.net load" and
+    # the data there in will be:
     #
     #     {"exitcode"=>"0",
     #      "count"=>"1",
@@ -54,8 +52,6 @@ class MNRPES
     class Redis_status
       def initialize
         require 'redis'
-        require 'redis/objects'
-        require 'redis/hash_key'
         require 'json'
 
         config = MCollective::Config.instance
@@ -72,6 +68,8 @@ class MNRPES
       end
 
       def notify_state_change(host, check, lastcheck, previous_exitcode, exitcode)
+        return unless @publish_target
+
         target = [@publish_target, "state_change"].join(".")
         msg = {"host" => host, "check" => check, "lastcheck" => lastcheck, "exitcode" => exitcode, "previous_exitcode" => previous_exitcode}.to_json
 
@@ -79,6 +77,8 @@ class MNRPES
       end
 
       def notify_problem(host, check, lastcheck, exitcode, count)
+        return unless @publish_target
+
         target = [@publish_target, "issues"].join(".")
         msg = {"host" => host, "check" => check, "lastcheck" => lastcheck, "exitcode" => exitcode, "count" => count}.to_json
 
@@ -95,28 +95,35 @@ class MNRPES
         data = result[:body][:data]
         check = data[:command].gsub(/^check_/, "")
         last_check = Time.now.utc.to_i
+        key = "status %s %s" % [result[:senderid], check]
+        r = Redis.current
 
-        hash = Redis::HashKey.new("status %s %s" % [result[:senderid], check])
+        old_exitcode = Integer(r.hget(key, "exitcode"))
 
-        old_exitcode = hash["exitcode"]
+        results = r.multi do
+          r.hset(key, "host", result[:senderid])
+          r.hset(key, "check", check)
+          r.hset(key, "exitcode", data[:exitcode])
+          r.hset(key, "lastcheck", last_check)
+          r.hset(key, "output", data[:output].chomp)
+          r.hset(key, "perfdata", data[:perfdata].chomp)
 
-        hash["host"] ||= result[:senderid]
-        hash["check"] ||= check
-        hash["exitcode"] = data[:exitcode]
-        hash["lastcheck"] = last_check
-        hash["output"] = data[:output].chomp
-        hash["prefdata"] = data[:perfdata]
-
-        if old_exitcode == data[:exitcode].to_s
-          hash.incr("count", 1)
-        else
-          hash["count"] = 1
-
-          # publish for a state change but not if the old state was unknown
-          notify_state_change(result[:senderid], check, last_check, old_exitcode, data[:exitcode]) if @publish_target && old_exitcode
+          if old_exitcode == data[:exitcode]
+            r.hincrby(key, "count", 1)
+          else
+            r.hset(key, "count", 1)
+          end
         end
 
-        notify_problem(result[:senderid], check, last_check, data[:exitcode], hash["count"]) if data[:exitcode] > 0 && @publish_target
+        unless old_exitcode == data[:exitcode]
+          notify_state_change(result[:senderid], check, last_check, old_exitcode, data[:exitcode])
+        end
+
+        p results if result[:senderid] == "dev1.devco.net"
+
+        results[6] == false ? count = 1 : count = results[6]
+
+        notify_problem(result[:senderid], check, last_check, data[:exitcode], count) if data[:exitcode] > 0
       end
     end
   end
