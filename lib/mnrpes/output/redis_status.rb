@@ -4,7 +4,7 @@ class MNRPES
     # in the Redis key-value store
     #
     # The results will be maintained in Redis Hashwith names matching
-    # "check $hostname $checkname" like "check devco.net load" and
+    # "check:$hostname:$checkname" like "check:devco.net:load" and
     # the data there in will be:
     #
     #     {"exitcode"=>"0",
@@ -22,7 +22,7 @@ class MNRPES
     # next status change.
     #
     # It will maintain a sorted set indicating when last we've seen a check
-    # result from a specific host in the host_last_seen key, the member names
+    # result from a specific host in the host:last_seen key, the member names
     # will be the host names while the score will be the UTC time stamp it
     # was last seen
     #
@@ -36,7 +36,7 @@ class MNRPES
     #    plugin.mnrpes.redis.publish_target = monitor
     #
     # Messages with status > 0 will cause a message to be published to
-    # monitor.issues while any state change will cause a message to be
+    # monitor:issues while any state change will cause a message to be
     # published to monitor.state_change
     #
     # The state_change message will be a JSON string:
@@ -76,7 +76,7 @@ class MNRPES
       def notify_state_change(host, check, lastcheck, previous_exitcode, exitcode)
         return unless @publish_target
 
-        target = [@publish_target, "state_change"].join(".")
+        target = [@publish_target, "state_change"].join(":")
         msg = {"host" => host, "check" => check, "lastcheck" => lastcheck, "exitcode" => exitcode, "previous_exitcode" => previous_exitcode}.to_json
 
         publish(target, msg)
@@ -85,7 +85,7 @@ class MNRPES
       def notify_problem(host, check, lastcheck, exitcode, count)
         return unless @publish_target
 
-        target = [@publish_target, "issues"].join(".")
+        target = [@publish_target, "issues"].join(":")
         msg = {"host" => host, "check" => check, "lastcheck" => lastcheck, "exitcode" => exitcode, "count" => count}.to_json
 
         publish(target, msg)
@@ -101,7 +101,7 @@ class MNRPES
         data = result[:body][:data]
         check = data[:command].gsub(/^check_/, "")
         last_check = Time.now.utc.to_i
-        key = "status %s %s" % [result[:senderid], check]
+        key = "status:%s:%s" % [result[:senderid], check]
         r = Redis.current
 
         old_exitcode = r.hget(key, "exitcode")
@@ -122,7 +122,7 @@ class MNRPES
           end
         end
 
-        r.zadd("host_last_seen", last_check, result[:senderid])
+        r.zadd("host:last_seen", last_check, result[:senderid])
 
         unless old_exitcode == data[:exitcode]
           r.hset(key, "last_state_change", last_check)
